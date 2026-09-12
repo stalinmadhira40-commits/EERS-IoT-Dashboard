@@ -1,15 +1,14 @@
 # ============================================================
 # EERS - PROGRAM 07
-# AI-IoT EV Dashboard + Interactive Charging Station Map
+# AI-IoT EV Dashboard
+# GOOGLE MAPS + LIVE LOCATION + EV CHARGING STATIONS
 # ============================================================
 
 import streamlit as st
 import random
 import math
-import requests
-import folium
+import urllib.parse
 
-from streamlit_folium import st_folium
 from streamlit_geolocation import streamlit_geolocation
 
 
@@ -28,16 +27,17 @@ st.set_page_config(
 # TITLE
 # ============================================================
 
-st.title("🔋 EERS - Intelligent Emergency Energy Recovery System")
+st.title(
+    "🔋 EERS - Intelligent Emergency Energy Recovery System"
+)
 
 st.subheader(
     "AI + IoT Based Electric Vehicle Energy Management Dashboard"
 )
 
 st.write(
-    "Real-time software simulation of battery monitoring, "
-    "regenerative energy recovery, emergency backup and "
-    "nearby EV charging-station detection."
+    "Monitor EV battery condition, regenerative energy recovery, "
+    "emergency backup and nearby EV charging stations using Google Maps."
 )
 
 st.divider()
@@ -67,16 +67,20 @@ temperature = random.uniform(25, 40)
 
 motor_power = random.uniform(20, 80)
 
-braking = random.choice([True, False])
+braking = random.choice(
+    [True, False]
+)
 
 
 # ============================================================
-# MAIN BATTERY ENERGY CONSUMPTION
+# MAIN BATTERY CONSUMPTION
 # ============================================================
 
 energy_used = motor_power / 60
 
-main_soc_loss = (energy_used / 100) * 100
+main_soc_loss = (
+    energy_used / 100
+) * 100
 
 st.session_state.main_soc -= main_soc_loss
 
@@ -92,13 +96,22 @@ recovered_energy = 0.0
 
 if braking:
 
-    recovered_energy = random.uniform(0.05, 0.5)
+    recovered_energy = random.uniform(
+        0.05,
+        0.50
+    )
 
-    st.session_state.total_recovered += recovered_energy
+    st.session_state.total_recovered += (
+        recovered_energy
+    )
 
-    emergency_gain = (recovered_energy / 50) * 100
+    emergency_gain = (
+        recovered_energy / 50
+    ) * 100
 
-    st.session_state.emergency_soc += emergency_gain
+    st.session_state.emergency_soc += (
+        emergency_gain
+    )
 
     if st.session_state.emergency_soc > 100:
         st.session_state.emergency_soc = 100
@@ -114,25 +127,21 @@ main_soc = st.session_state.main_soc
 if main_soc > 50:
 
     ai_status = "NORMAL"
-
     ai_action = "Continue normal operation"
 
 elif main_soc > 30:
 
     ai_status = "LOW"
-
     ai_action = "Enable energy-saving mode"
 
 elif main_soc > 15:
 
     ai_status = "CRITICAL"
-
     ai_action = "Prepare emergency battery"
 
 else:
 
     ai_status = "EMERGENCY"
-
     ai_action = "Activate emergency battery"
 
 
@@ -140,7 +149,11 @@ else:
 # POWER SOURCE
 # ============================================================
 
-if ai_status == "EMERGENCY" and st.session_state.emergency_soc > 0:
+if (
+    ai_status == "EMERGENCY"
+    and
+    st.session_state.emergency_soc > 0
+):
 
     power_source = "EMERGENCY BATTERY"
 
@@ -154,7 +167,6 @@ else:
 # ============================================================
 
 st.header("🚗 Live EV Parameters")
-
 
 col1, col2, col3, col4 = st.columns(4)
 
@@ -196,7 +208,6 @@ with col4:
 # ============================================================
 
 st.divider()
-
 
 col5, col6, col7, col8 = st.columns(4)
 
@@ -248,7 +259,15 @@ st.write(
 )
 
 st.progress(
-    int(max(0, min(100, st.session_state.main_soc)))
+    int(
+        max(
+            0,
+            min(
+                100,
+                st.session_state.main_soc
+            )
+        )
+    )
 )
 
 
@@ -258,7 +277,15 @@ st.write(
 )
 
 st.progress(
-    int(max(0, min(100, st.session_state.emergency_soc)))
+    int(
+        max(
+            0,
+            min(
+                100,
+                st.session_state.emergency_soc
+            )
+        )
+    )
 )
 
 
@@ -278,6 +305,7 @@ if ai_status == "NORMAL":
         f"ACTION: {ai_action}"
     )
 
+
 elif ai_status == "LOW":
 
     st.warning(
@@ -285,12 +313,14 @@ elif ai_status == "LOW":
         f"ACTION: {ai_action}"
     )
 
+
 elif ai_status == "CRITICAL":
 
     st.warning(
         f"AI STATUS: {ai_status}\n\n"
         f"ACTION: {ai_action}"
     )
+
 
 else:
 
@@ -325,26 +355,22 @@ else:
 
 
 # ============================================================
-# LOCATION
+# LIVE LOCATION
 # ============================================================
 
 st.divider()
 
-st.header("📍 Your EV Location")
+st.header("📍 Live EV Location")
 
 
 st.write(
-    "Allow location access in your browser to find "
-    "nearby EV charging stations."
+    "Allow browser location access to find EV charging "
+    "stations near your current location."
 )
 
 
 location = streamlit_geolocation()
 
-
-# ============================================================
-# LOCATION VARIABLES
-# ============================================================
 
 latitude = None
 longitude = None
@@ -358,15 +384,16 @@ if location:
 
 
 # ============================================================
-# MANUAL LOCATION OPTION
+# MANUAL LOCATION
 # ============================================================
 
-with st.expander("📌 Enter location manually"):
+with st.expander("📌 Use Manual Location"):
 
     st.write(
-        "If browser location is unavailable, "
-        "you can enter latitude and longitude manually."
+        "If your browser cannot provide GPS location, "
+        "enter latitude and longitude manually."
     )
+
 
     manual_lat = st.number_input(
         "Latitude",
@@ -374,15 +401,18 @@ with st.expander("📌 Enter location manually"):
         format="%.6f"
     )
 
+
     manual_lon = st.number_input(
         "Longitude",
         value=78.4867,
         format="%.6f"
     )
 
+
     use_manual = st.checkbox(
         "Use manual location"
     )
+
 
     if use_manual:
 
@@ -392,7 +422,7 @@ with st.expander("📌 Enter location manually"):
 
 
 # ============================================================
-# DISTANCE FUNCTION
+# DISTANCE CALCULATION
 # ============================================================
 
 def calculate_distance(
@@ -408,9 +438,13 @@ def calculate_distance(
 
     lat2_rad = math.radians(lat2)
 
-    delta_lat = math.radians(lat2 - lat1)
+    delta_lat = math.radians(
+        lat2 - lat1
+    )
 
-    delta_lon = math.radians(lon2 - lon1)
+    delta_lon = math.radians(
+        lon2 - lon1
+    )
 
     a = (
         math.sin(delta_lat / 2) ** 2
@@ -422,390 +456,257 @@ def calculate_distance(
         math.sin(delta_lon / 2) ** 2
     )
 
-    c = 2 * math.atan2(
-        math.sqrt(a),
-        math.sqrt(1 - a)
+    c = (
+        2
+        *
+        math.atan2(
+            math.sqrt(a),
+            math.sqrt(1 - a)
+        )
     )
 
     return earth_radius * c
 
 
 # ============================================================
-# FIND NEARBY CHARGING STATIONS
+# GOOGLE MAPS SECTION
 # ============================================================
 
-def get_charging_stations(
-    latitude,
-    longitude,
-    radius=10000
+if (
+    latitude is not None
+    and
+    longitude is not None
 ):
 
-    query = f"""
-    [out:json];
-
-    (
-      node
-        ["amenity"="charging_station"]
-        (around:{radius},{latitude},{longitude});
-
-      way
-        ["amenity"="charging_station"]
-        (around:{radius},{latitude},{longitude});
-
-      relation
-        ["amenity"="charging_station"]
-        (around:{radius},{latitude},{longitude});
-    );
-
-    out center tags;
-    """
-
-    url = "https://overpass-api.de/api/interpreter"
-
-    try:
-
-        response = requests.post(
-            url,
-            data=query,
-            timeout=30
-        )
-
-        response.raise_for_status()
-
-        return response.json().get(
-            "elements",
-            []
-        )
-
-    except Exception as error:
-
-        st.error(
-            "Unable to retrieve charging stations "
-            "right now."
-        )
-
-        return []
-
-
-# ============================================================
-# MAP SECTION
-# ============================================================
-
-if latitude is not None and longitude is not None:
+    st.divider()
 
     st.success(
-        f"📍 Location detected: "
-        f"{latitude:.6f}, {longitude:.6f}"
+        f"📍 Your live location detected\n\n"
+        f"Latitude: {latitude:.6f}\n\n"
+        f"Longitude: {longitude:.6f}"
     )
+
+
+    # ========================================================
+    # GOOGLE MAPS URL
+    # ========================================================
+
+    location_query = (
+        f"{latitude},{longitude}"
+    )
+
+
+    google_map_url = (
+        "https://www.google.com/maps/"
+        f"@{latitude},{longitude},15z"
+    )
+
+
+    charging_search_url = (
+        "https://www.google.com/maps/search/"
+        "?api=1"
+        "&query="
+        +
+        urllib.parse.quote(
+            f"EV charging station near {latitude},{longitude}"
+        )
+    )
+
+
+    # ========================================================
+    # GOOGLE MAPS BUTTONS
+    # ========================================================
 
     st.header(
-        "🗺️ Nearby EV Charging Stations"
-    )
-
-    # --------------------------------------------------------
-    # GET CHARGING STATIONS
-    # --------------------------------------------------------
-
-    stations = get_charging_stations(
-        latitude,
-        longitude,
-        radius=10000
+        "🗺️ Google Maps"
     )
 
 
-    # --------------------------------------------------------
-    # PROCESS STATIONS
-    # --------------------------------------------------------
-
-    station_data = []
+    map_col1, map_col2 = st.columns(2)
 
 
-    for station in stations:
+    with map_col1:
 
-        tags = station.get(
-            "tags",
-            {}
-        )
-
-        station_lat = station.get(
-            "lat"
-        )
-
-        station_lon = station.get(
-            "lon"
+        st.link_button(
+            "🗺️ Open My Live Location",
+            google_map_url,
+            use_container_width=True
         )
 
 
-        # For ways/relations
-        if station_lat is None:
+    with map_col2:
 
-            center = station.get(
-                "center",
-                {}
-            )
-
-            station_lat = center.get(
-                "lat"
-            )
-
-            station_lon = center.get(
-                "lon"
-            )
-
-
-        if (
-            station_lat is None
-            or station_lon is None
-        ):
-            continue
-
-
-        distance = calculate_distance(
-            latitude,
-            longitude,
-            station_lat,
-            station_lon
+        st.link_button(
+            "⚡ Find EV Charging Stations",
+            charging_search_url,
+            use_container_width=True
         )
 
 
-        name = (
-            tags.get("name")
-            or tags.get("operator")
-            or "EV Charging Station"
-        )
+    # ========================================================
+    # GOOGLE MAPS EMBED
+    # ========================================================
 
-
-        operator = (
-            tags.get("operator")
-            or "Not specified"
-        )
-
-
-        station_data.append(
-            {
-                "name": name,
-                "operator": operator,
-                "latitude": station_lat,
-                "longitude": station_lon,
-                "distance": distance
-            }
-        )
-
-
-    # --------------------------------------------------------
-    # SORT BY DISTANCE
-    # --------------------------------------------------------
-
-    station_data.sort(
-        key=lambda x: x["distance"]
+    st.subheader(
+        "📍 Your Current Location"
     )
 
 
-    # --------------------------------------------------------
-    # SHOW MAP
-    # --------------------------------------------------------
-
-    ev_map = folium.Map(
-
-        location=[
-            latitude,
-            longitude
-        ],
-
-        zoom_start=13,
-
-        control_scale=True
-    )
-
-
-    # --------------------------------------------------------
-    # YOUR LOCATION MARKER
-    # --------------------------------------------------------
-
-    folium.Marker(
-
-        [
-            latitude,
-            longitude
-        ],
-
-        popup=(
-            "<b>🚗 Your EV</b><br>"
-            "Current Location"
-        ),
-
-        tooltip="🚗 Your EV",
-
-        icon=folium.Icon(
-            color="blue",
-            icon="car",
-            prefix="fa"
-        )
-
-    ).add_to(ev_map)
-
-
-    # --------------------------------------------------------
-    # CHARGING STATION MARKERS
-    # --------------------------------------------------------
-
-    for index, station in enumerate(
-        station_data[:50]
-    ):
-
-        popup_text = f"""
-        <b>⚡ {station['name']}</b><br>
-        Operator: {station['operator']}<br>
-        Distance: {station['distance']:.2f} km
-        """
-
-
-        folium.Marker(
-
-            [
-                station["latitude"],
-                station["longitude"]
-            ],
-
-            popup=popup_text,
-
-            tooltip=(
-                f"⚡ {station['name']} "
-                f"({station['distance']:.2f} km)"
-            ),
-
-            icon=folium.Icon(
-                color="green",
-                icon="bolt",
-                prefix="fa"
-            )
-
-        ).add_to(ev_map)
-
-
-    # --------------------------------------------------------
-    # DISPLAY MAP
-    # --------------------------------------------------------
-
-    map_data = st_folium(
-
-        ev_map,
-
-        width=None,
-
-        height=600,
-
-        returned_objects=[]
+    st.components.v1.html(
+        f"""
+        <iframe
+            src="https://www.google.com/maps?q={latitude},{longitude}&output=embed"
+            width="100%"
+            height="500"
+            style="border:0;"
+            allowfullscreen=""
+            loading="lazy"
+            referrerpolicy="no-referrer-when-downgrade">
+        </iframe>
+        """,
+        height=520
     )
 
 
     # ========================================================
-    # NEAREST STATION
+    # CHARGING STATION SEARCH
     # ========================================================
 
-    if station_data:
+    st.divider()
 
-        nearest = station_data[0]
+    st.header(
+        "⚡ EV Charging Stations Near You"
+    )
 
 
-        st.divider()
+    st.write(
+        "Google Maps will search charging stations "
+        "around your current location."
+    )
 
-        st.header(
-            "🥇 Nearest EV Charging Station"
+
+    st.link_button(
+        "🔋 SEARCH NEARBY CHARGING STATIONS ON GOOGLE MAPS",
+        charging_search_url,
+        use_container_width=True
+    )
+
+
+    # ========================================================
+    # SELECT STATION FOR DIRECTIONS
+    # ========================================================
+
+    st.divider()
+
+    st.header(
+        "🧭 Get Directions to Charging Station"
+    )
+
+
+    station_name = st.text_input(
+        "Enter charging station name",
+        placeholder="Example: Tata Power EV Charging Station"
+    )
+
+
+    if station_name:
+
+        destination = urllib.parse.quote(
+            station_name
         )
 
-
-        c1, c2, c3 = st.columns(3)
-
-
-        with c1:
-
-            st.metric(
-                "⚡ Station",
-                nearest["name"]
-            )
-
-
-        with c2:
-
-            st.metric(
-                "📏 Distance",
-                f"{nearest['distance']:.2f} km"
-            )
-
-
-        with c3:
-
-            st.metric(
-                "🏢 Operator",
-                nearest["operator"]
-            )
-
-
-        # ----------------------------------------------------
-        # GOOGLE MAPS DIRECTIONS
-        # ----------------------------------------------------
 
         directions_url = (
-            "https://www.google.com/maps/dir/?api=1"
+            "https://www.google.com/maps/dir/"
+            "?api=1"
             f"&origin={latitude},{longitude}"
-            f"&destination="
-            f"{nearest['latitude']},"
-            f"{nearest['longitude']}"
+            f"&destination={destination}"
         )
 
 
         st.link_button(
-            "🧭 Get Directions",
-            directions_url
+            "🧭 Navigate to This Charging Station",
+            directions_url,
+            use_container_width=True
         )
 
 
-        # ====================================================
-        # TOP NEARBY STATIONS
-        # ====================================================
+    # ========================================================
+    # QUICK SEARCH OPTIONS
+    # ========================================================
 
-        st.divider()
+    st.divider()
 
-        st.header(
-            "⚡ Nearby Charging Stations"
+    st.header(
+        "⚡ Quick Charging Searches"
+    )
+
+
+    q1, q2, q3 = st.columns(3)
+
+
+    fast_dc_url = (
+        "https://www.google.com/maps/search/"
+        "?api=1&query="
+        +
+        urllib.parse.quote(
+            f"DC fast EV charger near {latitude},{longitude}"
+        )
+    )
+
+
+    tata_url = (
+        "https://www.google.com/maps/search/"
+        "?api=1&query="
+        +
+        urllib.parse.quote(
+            f"Tata Power EV charging station near {latitude},{longitude}"
+        )
+    )
+
+
+    ev_station_url = (
+        "https://www.google.com/maps/search/"
+        "?api=1&query="
+        +
+        urllib.parse.quote(
+            f"EV charging station near {latitude},{longitude}"
+        )
+    )
+
+
+    with q1:
+
+        st.link_button(
+            "⚡ DC Fast Chargers",
+            fast_dc_url,
+            use_container_width=True
         )
 
 
-        for number, station in enumerate(
-            station_data[:10],
-            start=1
-        ):
+    with q2:
 
-            st.write(
-                f"**{number}. ⚡ "
-                f"{station['name']}**"
-            )
-
-            st.write(
-                f"Distance: "
-                f"{station['distance']:.2f} km"
-                f" | Operator: "
-                f"{station['operator']}"
-            )
-
-            st.divider()
+        st.link_button(
+            "🔋 Tata Power Chargers",
+            tata_url,
+            use_container_width=True
+        )
 
 
-    else:
+    with q3:
 
-        st.warning(
-            "No EV charging stations were found "
-            "within approximately 10 km of your location."
+        st.link_button(
+            "🚗 All EV Chargers",
+            ev_station_url,
+            use_container_width=True
         )
 
 
 else:
 
     st.info(
-        "📍 Please allow location access above "
-        "to display your position and nearby "
-        "EV charging stations."
+        "📍 Allow browser location access above "
+        "to use Google Maps and find charging stations."
     )
 
 
@@ -821,35 +722,41 @@ st.header(
 
 
 st.write(
-    "**System:** AI-IoT Intelligent Emergency "
-    "Energy Recovery System"
+    "**System:** AI-IoT Based Intelligent "
+    "Emergency Energy Recovery System"
 )
+
 
 st.write(
     "**Controller:** ESP32 "
     "(future hardware integration)"
 )
 
-st.write(
-    "**AI:** Machine Learning / TinyML "
-    "(future hardware integration)"
-)
 
 st.write(
-    "**Energy Recovery:** Regenerative braking"
+    "**AI:** Machine Learning / TinyML"
 )
 
-st.write(
-    "**Backup:** Dedicated emergency battery"
-)
 
 st.write(
-    "**GPS:** Vehicle location and charging-station guidance"
+    "**Energy Recovery:** Regenerative Braking"
 )
 
+
 st.write(
-    "**Map:** OpenStreetMap + EV charging-station data"
+    "**Emergency Backup:** Dedicated Emergency Battery"
 )
+
+
+st.write(
+    "**Location:** Browser GPS / Future NEO-6M GPS"
+)
+
+
+st.write(
+    "**Map:** Google Maps"
+)
+
 
 st.write(
     "**Dashboard:** Streamlit IoT Web Dashboard"
@@ -863,8 +770,8 @@ st.write(
 st.divider()
 
 st.caption(
-    "EERS - AI-IoT Based Intelligent Emergency Energy "
-    "Recovery System for Electric Vehicles"
+    "EERS - AI-IoT Based Intelligent Emergency "
+    "Energy Recovery System for Electric Vehicles"
 )
 
 st.caption(
